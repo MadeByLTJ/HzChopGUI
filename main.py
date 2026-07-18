@@ -18,9 +18,9 @@ class MainActivity(QWidget):
         self.setFixedSize(W, H)
         self.setWindowTitle("HzChop GUI 版 v1.0 - by LTJ")
         if QApplication.styleHints().colorScheme() == Qt.ColorScheme.Light:
-            self.setWindowIcon(QIcon("resources/icon0.png"))
+            self.setWindowIcon(QIcon(f"{pathlib.Path(__file__).parent}/resources/icon0.png"))
         else:
-            self.setWindowIcon(QIcon("resources/icon1.png"))
+            self.setWindowIcon(QIcon(f"{pathlib.Path(__file__).parent}/resources/icon1.png"))
 
         self.hzchop = None
         self.input_midi = None
@@ -210,7 +210,7 @@ class MainActivity(QWidget):
     
     def saveThisConfig(self, config_dict):
         try:
-            with open("data/config.json", "w", encoding="utf-8") as f:
+            with open(f"{pathlib.Path(__file__).parent}/data/config.json", "w", encoding="utf-8") as f:
                 json.dump(config_dict, f, indent=4, ensure_ascii=False)
         except Exception:
             pass

@@ -1,0 +1,15 @@
+Usage: hzchop <input_midi_file> <output_midi_file> [options]
+Options:
+  -velSlope <value>     Velocity slope factor (default: 1.0)
+  -phaseCount <value>   Number of phase-shifted layers (if not specified: no phasing)
+  -phaseAmount <value>  Phase shift amount in frequency ratio (default: 0.01)
+  -bassMode <value>     Number of stacked copies above/below key 64 (default: 0 - disabled)
+  -ppq <value>          Output PPQ value (default: use original PPQ)
+  -bassBoost <key>      Only hz chop notes below this key (default: 0 - disabled)
+  -bassBoostVelo <vel>  Velocity threshold for bass boost (default: 0 - no threshold)
+  -trackMin <value>     Minimum track number to process (default: 0)
+  -trackMax <value>     Maximum track number to process (default: all tracks)
+  -channelMin <value>   Minimum channel number to process (default: 0)
+  -channelMax <value>   Maximum channel number to process (default: 15)
+
+上面是 hzchop.exe 无参数输出 (帮助), 本程序通过 subprocess 运行 hzchop.exe 子进程来达到目的

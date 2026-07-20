@@ -36,16 +36,16 @@ class MainActivity(QWidget):
     def __init__(self):
         super().__init__()
         self.langs = self.loadLang()
-        self.defLang = self.langs["en"]
+        self.defLang = self.langs["zh"]
         self.onCreate()
     
     def onCreate(self):
         self.setFixedSize(W, H)
         self.setWindowTitle(self.defLang["windowTitle"])
         if QApplication.styleHints().colorScheme() == Qt.ColorScheme.Light:
-            self.setWindowIcon(QIcon(f"{pathlib.Path(__file__).parent}/resources/icon0.png"))
+            self.setWindowIcon(QIcon(f"{self.get_application_path()}/resources/icon0.png"))
         else:
-            self.setWindowIcon(QIcon(f"{pathlib.Path(__file__).parent}/resources/icon1.png"))
+            self.setWindowIcon(QIcon(f"{self.get_application_path()}/resources/icon1.png"))
 
         self.h1 = QHBoxLayout()
         self.h2 = QHBoxLayout()
@@ -60,8 +60,8 @@ class MainActivity(QWidget):
         self.langZh = QAction(self.defLang["langZh"])
         self.langEn = QAction(self.defLang["langEn"])
         self.menuAbout = QAction(self.defLang["about"])
-        self.langZh.triggered.connect(self.setLangToZh)
-        self.langEn.triggered.connect(self.setLangToEn)
+        self.langZh.triggered.connect(lambda: self.setLangTo("zh"))
+        self.langEn.triggered.connect(lambda: self.setLangTo("en"))
         self.menuAbout.triggered.connect(lambda: QMessageBox.information(self, self.defLang["aboutTitle"], self.defLang["aboutText"]))
         self.menuLang.addAction(self.langZh)
         self.menuLang.addAction(self.langEn)
@@ -105,7 +105,7 @@ class MainActivity(QWidget):
         self.h3.addWidget(self.whereIsOutputMIDIInput)
         self.h3.addWidget(self.whereIsOutputMIDIButton)
 
-        self.logoIcon = QIcon(f"{pathlib.Path(__file__).parent}/resources/logo.png")
+        self.logoIcon = QIcon(f"{self.get_application_path()}/resources/logo.png")
         self.startButton = QPushButton(self.logoIcon, self.defLang["start"])
         self.startButton.clicked.connect(self.onClick_Start)
         self.startButton.setIconSize(QSize(72, 36))
@@ -165,6 +165,12 @@ class MainActivity(QWidget):
         
         self.setLayout(self.v)
     
+    def get_application_path(self):
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            return pathlib.Path(sys.executable).parent
+        else:
+            return pathlib.Path(__file__).parent
+
     def onClick_WhereIsHzChop(self):
         hzchop = QFileDialog.getOpenFileName(self, self.defLang["openHzChop"][0], None, self.defLang["openHzChop"][1])[0]
         if hzchop:
@@ -219,7 +225,7 @@ class MainActivity(QWidget):
     
     def loadLastConfig(self):
         try:
-            with open(f"{pathlib.Path(__file__).parent}/data/config.json", "r", encoding="utf-8") as f:
+            with open(f"{self.get_application_path()}/data/config.json", "r", encoding="utf-8") as f:
                 config = json.loads(f.read())
             
             hzchop = config.get("hzchopPath").replace("/", "\\")
@@ -244,24 +250,19 @@ class MainActivity(QWidget):
     
     def saveThisConfig(self, config_dict):
         try:
-            with open(f"{pathlib.Path(__file__).parent}/data/config.json", "w", encoding="utf-8") as f:
+            with open(f"{self.get_application_path()}/data/config.json", "w", encoding="utf-8") as f:
                 json.dump(config_dict, f, indent=4, ensure_ascii=False)
         except Exception as e:
             print(e)
 
     def loadLang(self):
-        with open(f"{pathlib.Path(__file__).parent}/data/lang.json", "r", encoding="utf-8") as f:
+        with open(f"{self.get_application_path()}/data/lang.json", "r", encoding="utf-8") as f:
             langs = json.loads(f.read())
         return langs
     
-    def setLangToZh(self):
-        if self.defLang != self.langs["zh"]:
-            self.defLang = self.langs["zh"]
-            self.retranslateUI(self.defLang)
-        
-    def setLangToEn(self):
-        if self.defLang != self.langs["en"]:
-            self.defLang = self.langs["en"]
+    def setLangTo(self, lang):
+        if self.defLang != self.langs[lang]:
+            self.defLang = self.langs[lang]
             self.retranslateUI(self.defLang)
     
     def retranslateUI(self, defLang):        

@@ -1,0 +1,78 @@
+{
+    "zh": {
+        "windowTitle": "HzChop GUI 版 v1.1 - by LTJ",
+        "whereIsHzChop": "HzChop 所在路径:",
+        "whereIsInputMIDI": "输入 MIDI 所在路径:",
+        "whereIsOutputMIDI": "输出 MIDI 所在路径:",
+        "browse": "浏览...",
+        "start": "开始",
+        "toolTips": [
+            "力度斜率因子 （默认：1.0）", 
+            "移相层数（如果不指定：不进行移相处理）", 
+            "移相量，以频率比表示（默认：0.01）", 
+            "在音符 64 之上/之下叠加的副本数量（默认：0 - 禁用）", 
+            "输出的 PPQ（每四分音符脉冲数）值（默认：使用原始 PPQ）", 
+            "仅对低于此键位的音符进行 Hz 切分（默认：0 - 禁用）", 
+            "低音增强的力度阈值（默认：0 - 无阈值）", 
+            "要处理的最小轨道编号（默认：0）", 
+            "要处理的最大轨道编号（默认：所有轨道）", 
+            "要处理的最小通道编号（默认：0）", 
+            "要处理的最大通道编号（默认：15）"
+        ],
+        "openHzChop": ["打开 hzchop.exe ...", "可执行文件 (*.exe)"],
+        "openMIDI": ["打开 MIDI ...", "MIDI 文件 (*.mid)"],
+        "saveMIDI": ["保存 MIDI ...", "MIDI 文件 (*.mid)"],
+        "tips": {
+            "infoTitle": "提示",
+            "infoTextA": "成功! 到 ",
+            "infoTextB": " 查看 MIDI!",
+            "errorTitle": "错误",
+            "error1Text": "先填写输入和输出 MIDI 路径!!!",
+            "error2Text": "先填写 hzchop.exe 的路径!!!"
+        },
+        "langSettings": "语言 (&L)",
+        "langZh": "中文",
+        "langEn": "English",
+        "about": "关于 (&A)...",
+        "aboutTitle": "关于",
+        "aboutText": "Made by LTJ  :)"
+    },
+    "en": {
+        "windowTitle": "HzChop GUI v1.1 - by LTJ",
+        "whereIsHzChop": "HzChop Path:",
+        "whereIsInputMIDI": "Input MIDI Path:",
+        "whereIsOutputMIDI": "Output MIDI Path:",
+        "browse": "Browse...",
+        "start": "Start",
+        "toolTips": [
+            "Velocity slope factor (default: 1.0)", 
+            "Number of phase-shifted layers (if not specified: no phasing)", 
+            "Phase shift amount in frequency ratio (default: 0.01)", 
+            "Number of stacked copies above/below key 64 (default: 0 - disabled)", 
+            "Output PPQ value (default: use original PPQ)", 
+            "Only hz chop notes below this key (default: 0 - disabled)", 
+            "Velocity threshold for bass boost (default: 0 - no threshold)", 
+            "Minimum track number to process (default: 0)", 
+            "Maximum track number to process (default: all tracks)", 
+            "Minimum channel number to process (default: 0)", 
+            "Maximum channel number to process (default: 15)"
+        ],
+        "openHzChop": ["Open hzchop.exe ...", "Executable Files (*.exe)"],
+        "openMIDI": ["Open MIDI ...", "MIDI Files (*.mid)"],
+        "saveMIDI": ["Save MIDI ...", "MIDI Files (*.mid)"],
+        "tips": {
+            "infoTitle": "Info",
+            "infoTextA": "Success! Check out the MIDI file at ",
+            "infoTextB": " !",
+            "errorTitle": "Error",
+            "error1Text": "Please specify both input and output MIDI paths first!!!",
+            "error2Text": "Please specify the path to hzchop.exe first!!!"
+        },
+        "langSettings": "&Language",
+        "langZh": "中文",
+        "langEn": "English",
+        "about": "&About...",
+        "aboutTitle": "About",
+        "aboutText": "Made by LTJ  :)"
+    }
+}

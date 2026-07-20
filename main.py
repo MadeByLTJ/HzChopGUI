@@ -9,22 +9,43 @@ import json
 W = 600
 H = 600
 
+class LineEdit(QLineEdit):
+    def __init__(self, endswith):
+        super().__init__()
+        self.endswith = endswith
+    
+    def dragEnterEvent(self, a0):
+        if a0.mimeData().hasUrls():
+            urls = a0.mimeData().urls()
+            if urls:
+                path = urls[0].toLocalFile().lower()
+                if not path.endswith(self.endswith):
+                    a0.ignore()
+                    return
+                a0.acceptProposedAction()
+        else:
+            a0.ignore()
+    
+    def dropEvent(self, a0):
+        if a0.mimeData().hasUrls():
+            path = a0.mimeData().urls()[0].toLocalFile()
+            self.setText(path.replace("/", "\\"))
+            a0.acceptProposedAction()
+
 class MainActivity(QWidget):
     def __init__(self):
         super().__init__()
+        self.langs = self.loadLang()
+        self.defLang = self.langs["en"]
         self.onCreate()
     
     def onCreate(self):
         self.setFixedSize(W, H)
-        self.setWindowTitle("HzChop GUI 版 v1.0 - by LTJ")
+        self.setWindowTitle(self.defLang["windowTitle"])
         if QApplication.styleHints().colorScheme() == Qt.ColorScheme.Light:
             self.setWindowIcon(QIcon(f"{pathlib.Path(__file__).parent}/resources/icon0.png"))
         else:
             self.setWindowIcon(QIcon(f"{pathlib.Path(__file__).parent}/resources/icon1.png"))
-
-        self.hzchop = None
-        self.input_midi = None
-        self.output_midi = None
 
         self.h1 = QHBoxLayout()
         self.h2 = QHBoxLayout()
@@ -34,24 +55,37 @@ class MainActivity(QWidget):
         self.params = []
         self.v = QVBoxLayout()
 
-        self.whereIsHzChopLabel = QLabel("HzChop 所在路径:")
+        self.menuBar = QMenuBar()
+        self.menuLang = QMenu(self.defLang["langSettings"])
+        self.langZh = QAction(self.defLang["langZh"])
+        self.langEn = QAction(self.defLang["langEn"])
+        self.menuAbout = QAction(self.defLang["about"])
+        self.langZh.triggered.connect(self.setLangToZh)
+        self.langEn.triggered.connect(self.setLangToEn)
+        self.menuAbout.triggered.connect(lambda: QMessageBox.information(self, self.defLang["aboutTitle"], self.defLang["aboutText"]))
+        self.menuLang.addAction(self.langZh)
+        self.menuLang.addAction(self.langEn)
+        self.menuBar.addMenu(self.menuLang)
+        self.menuBar.addAction(self.menuAbout)
+
+        self.whereIsHzChopLabel = QLabel(self.defLang["whereIsHzChop"])
         self.whereIsHzChopLabel.setFixedWidth(128)
         self.whereIsHzChopLabel.setStyleSheet("font-family: Consolas;")
-        self.whereIsHzChopInput = QLineEdit()
+        self.whereIsHzChopInput = LineEdit(".exe")
         self.whereIsHzChopInput.setStyleSheet("font-family: Consolas; color: #80a040;")
-        self.whereIsHzChopButton = QPushButton("浏览...")
+        self.whereIsHzChopButton = QPushButton(self.defLang["browse"])
         self.whereIsHzChopButton.clicked.connect(self.onClick_WhereIsHzChop)
         self.whereIsHzChopButton.setStyleSheet("color: green;")
         self.h1.addWidget(self.whereIsHzChopLabel)
         self.h1.addWidget(self.whereIsHzChopInput)
         self.h1.addWidget(self.whereIsHzChopButton)
 
-        self.whereIsInputMIDILabel = QLabel("输入 MIDI 所在路径:")
+        self.whereIsInputMIDILabel = QLabel(self.defLang["whereIsInputMIDI"])
         self.whereIsInputMIDILabel.setFixedWidth(128)
         self.whereIsInputMIDILabel.setStyleSheet("font-family: Consolas;")
-        self.whereIsInputMIDIInput = QLineEdit()
+        self.whereIsInputMIDIInput = LineEdit(".mid")
         self.whereIsInputMIDIInput.setStyleSheet("font-family: Consolas; color: #80a040;")
-        self.whereIsInputMIDIButton = QPushButton("浏览...")
+        self.whereIsInputMIDIButton = QPushButton(self.defLang["browse"])
         self.whereIsInputMIDIButton.clicked.connect(self.onClick_WhereIsInputMIDI)
         self.whereIsInputMIDIButton.setStyleSheet("color: green;")
         self.h2.addWidget(self.whereIsInputMIDILabel)
@@ -59,20 +93,20 @@ class MainActivity(QWidget):
         self.h2.addWidget(self.whereIsInputMIDIButton)
 
         
-        self.whereIsOutputMIDILabel = QLabel("输出 MIDI 所在路径:")
+        self.whereIsOutputMIDILabel = QLabel(self.defLang["whereIsOutputMIDI"])
         self.whereIsOutputMIDILabel.setFixedWidth(128)
         self.whereIsOutputMIDILabel.setStyleSheet("font-family: Consolas;")
-        self.whereIsOutputMIDIInput = QLineEdit()
+        self.whereIsOutputMIDIInput = LineEdit(".mid")
         self.whereIsOutputMIDIInput.setStyleSheet("font-family: Consolas; color: #80a040;")
-        self.whereIsOutputMIDIButton = QPushButton("浏览...")
+        self.whereIsOutputMIDIButton = QPushButton(self.defLang["browse"])
         self.whereIsOutputMIDIButton.clicked.connect(self.onClick_WhereIsOutputMIDI)
         self.whereIsOutputMIDIButton.setStyleSheet("color: green;")
         self.h3.addWidget(self.whereIsOutputMIDILabel)
         self.h3.addWidget(self.whereIsOutputMIDIInput)
         self.h3.addWidget(self.whereIsOutputMIDIButton)
 
-        self.logoIcon = QIcon("resources/logo.png")
-        self.startButton = QPushButton(self.logoIcon, "开始")
+        self.logoIcon = QIcon(f"{pathlib.Path(__file__).parent}/resources/logo.png")
+        self.startButton = QPushButton(self.logoIcon, self.defLang["start"])
         self.startButton.clicked.connect(self.onClick_Start)
         self.startButton.setIconSize(QSize(72, 36))
         self.startButton.setFont(QFont("新宋体", 18))
@@ -84,14 +118,7 @@ class MainActivity(QWidget):
             "-velSlope", "-phaseCount", "-phaseAmount", "-bassMode", "-ppq", "-bassBoost", 
             "-bassBoostVelo", "-trackMin", "-trackMax", "-channelMin", "-channelMax"
         ]
-        self.paramCheckBoxToolTips = [
-            "力度斜率因子 （默认：1.0）", "移相层数（如果不指定：不进行移相处理）", 
-            "移相量，以频率比表示（默认：0.01）", "在音符 64 之上/之下叠加的副本数量（默认：0 - 禁用）", 
-            "输出的 PPQ（每四分音符脉冲数）值（默认：使用原始 PPQ）", "仅对低于此键位的音符进行 Hz 切分（默认：0 - 禁用）", 
-            "低音增强的力度阈值（默认：0 - 无阈值）", "要处理的最小轨道编号（默认：0）", 
-            "要处理的最大轨道编号（默认：所有轨道）", "要处理的最小通道编号（默认：0）", 
-            "要处理的最大通道编号（默认：15）"
-        ]
+        self.paramCheckBoxToolTips = self.defLang["toolTips"]
         self.paramSetAttributes = [
             (1.0, 0.1, 5.0, 0.1, 1), (1, 1, 10, 1), (0.01, 0.001, 0.1, 0.001, 3), (0, 0, 5, 1), (1920, 1, 65535, 1), (0, 0, 127, 1),
             (0, 0, 127, 1), (0, 0, 65535, 1), (0, 0, 65535, 1), (0, 0, 15, 1), (15, 0, 15, 1)
@@ -134,25 +161,32 @@ class MainActivity(QWidget):
         self.v.addSpacing(20)
         self.v.addLayout(self.h4)
         self.v.addStretch()
+        self.v.setMenuBar(self.menuBar)
         
         self.setLayout(self.v)
     
     def onClick_WhereIsHzChop(self):
-        self.hzchop = QFileDialog.getOpenFileName(self, "打开 hzchop.exe ...", None, "可执行文件 (*.exe)")[0]
-        self.whereIsHzChopInput.setText(self.hzchop.replace("/", "\\"))
+        hzchop = QFileDialog.getOpenFileName(self, self.defLang["openHzChop"][0], None, self.defLang["openHzChop"][1])[0]
+        if hzchop:
+            self.whereIsHzChopInput.setText(hzchop.replace("/", "\\"))
     
     def onClick_WhereIsInputMIDI(self):
-        self.input_midi = QFileDialog.getOpenFileName(self, "打开 MIDI ...", None, "MIDI 文件 (*.mid *.midi)")[0]
-        self.whereIsInputMIDIInput.setText(self.input_midi.replace("/", "\\"))
+        input_midi = QFileDialog.getOpenFileName(self, self.defLang["openMIDI"][0], None, self.defLang["openMIDI"][1])[0]
+        if input_midi:
+            self.whereIsInputMIDIInput.setText(input_midi.replace("/", "\\"))
     
     def onClick_WhereIsOutputMIDI(self):
-        self.output_midi = QFileDialog.getSaveFileName(self, "保存 MIDI ...", None, "MIDI 文件 (*.mid *.midi)")[0]
-        self.whereIsOutputMIDIInput.setText(self.output_midi.replace("/", "\\"))
+        output_midi = QFileDialog.getSaveFileName(self, self.defLang["saveMIDI"][0], None, self.defLang["saveMIDI"][1])[0]
+        if output_midi:
+            self.whereIsOutputMIDIInput.setText(output_midi.replace("/", "\\"))
     
     def onClick_Start(self):
-        if self.hzchop:
-            if self.input_midi and self.output_midi:
-                standardCmd = f"{self.hzchop} {self.input_midi} {self.output_midi}"
+        hzchop = self.whereIsHzChopInput.text()
+        input_midi = self.whereIsInputMIDIInput.text()
+        output_midi = self.whereIsOutputMIDIInput.text()
+        if hzchop:
+            if input_midi and output_midi:
+                standardCmd = f"{hzchop} {input_midi} {output_midi}"
                 for i in self.params:
                     if i[1].isEnabled():
                         standardCmd += f" {i[0].text()} {i[1].value()}"
@@ -160,11 +194,11 @@ class MainActivity(QWidget):
                 for line in process.stdout:
                     print(line, end="")
                 process.wait()
-                QMessageBox.information(self, "提示", f"成功! 到 {pathlib.Path(self.output_midi).parent} 查看 MIDI!")
+                QMessageBox.information(self, self.defLang["tips"]["infoTitle"], f"{self.defLang["tips"]["infoTextA"]}{pathlib.Path(output_midi).parent}{self.defLang["tips"]["infoTextB"]}")
             else:
-                QMessageBox.critical(self, "错误", "先填写输入和输出 MIDI 路径!!!")
+                QMessageBox.critical(self, self.defLang["tips"]["errorTitle"], self.defLang["tips"]["error1Text"])
         else:
-            QMessageBox.critical(self, "错误", "先填写 hzchop.exe 的路径!!!")
+            QMessageBox.critical(self, self.defLang["tips"]["errorTitle"], self.defLang["tips"]["error2Text"])
         
         params_dict = {}
         for checkbox, spinbox in self.params:
@@ -175,9 +209,9 @@ class MainActivity(QWidget):
             }
 
         config_data = {
-            "hzchopPath": self.hzchop,
-            "inputMIDIPath": self.input_midi,
-            "outputMIDIPath": self.output_midi,
+            "hzchopPath": hzchop,
+            "inputMIDIPath": input_midi,
+            "outputMIDIPath": output_midi,
             "other": params_dict
         }
 
@@ -185,16 +219,16 @@ class MainActivity(QWidget):
     
     def loadLastConfig(self):
         try:
-            with open("data/config.json", "r", encoding="utf-8") as f:
+            with open(f"{pathlib.Path(__file__).parent}/data/config.json", "r", encoding="utf-8") as f:
                 config = json.loads(f.read())
             
-            self.hzchop = config.get("hzchopPath").replace("/", "\\")
-            self.input_midi = config.get("inputMIDIPath").replace("/", "\\")
-            self.output_midi = config.get("outputMIDIPath").replace("/", "\\")
+            hzchop = config.get("hzchopPath").replace("/", "\\")
+            input_midi = config.get("inputMIDIPath").replace("/", "\\")
+            output_midi = config.get("outputMIDIPath").replace("/", "\\")
             
-            if self.hzchop: self.whereIsHzChopInput.setText(self.hzchop)
-            if self.input_midi: self.whereIsInputMIDIInput.setText(self.input_midi)
-            if self.output_midi: self.whereIsOutputMIDIInput.setText(self.output_midi)
+            if hzchop: self.whereIsHzChopInput.setText(hzchop)
+            if input_midi: self.whereIsInputMIDIInput.setText(input_midi)
+            if output_midi: self.whereIsOutputMIDIInput.setText(output_midi)
             
             other_params = config.get("other", {})
             for checkbox, spinbox in self.params:
@@ -212,8 +246,43 @@ class MainActivity(QWidget):
         try:
             with open(f"{pathlib.Path(__file__).parent}/data/config.json", "w", encoding="utf-8") as f:
                 json.dump(config_dict, f, indent=4, ensure_ascii=False)
-        except Exception:
-            pass
+        except Exception as e:
+            print(e)
+
+    def loadLang(self):
+        with open(f"{pathlib.Path(__file__).parent}/data/lang.json", "r", encoding="utf-8") as f:
+            langs = json.loads(f.read())
+        return langs
+    
+    def setLangToZh(self):
+        if self.defLang != self.langs["zh"]:
+            self.defLang = self.langs["zh"]
+            self.retranslateUI(self.defLang)
+        
+    def setLangToEn(self):
+        if self.defLang != self.langs["en"]:
+            self.defLang = self.langs["en"]
+            self.retranslateUI(self.defLang)
+    
+    def retranslateUI(self, defLang):        
+        self.setWindowTitle(defLang["windowTitle"])
+        
+        self.menuLang.setTitle(defLang["langSettings"])
+        self.menuAbout.setText(defLang["about"])
+        self.whereIsHzChopLabel.setText(defLang["whereIsHzChop"])
+        self.whereIsInputMIDILabel.setText(defLang["whereIsInputMIDI"])
+        self.whereIsOutputMIDILabel.setText(defLang["whereIsOutputMIDI"])
+        self.whereIsHzChopButton.setText(defLang["browse"])
+        self.whereIsInputMIDIButton.setText(defLang["browse"])
+        self.whereIsOutputMIDIButton.setText(defLang["browse"])
+        self.startButton.setText(defLang["start"])
+        
+        for i, (checkbox, _) in enumerate(self.params):
+            if i < len(defLang["toolTips"]):
+                checkbox.setToolTip(defLang["toolTips"][i])
+        
+        self.updateGeometry()
+        self.adjustSize()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
